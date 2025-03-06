@@ -1,7 +1,14 @@
 Make OVA 
 ===========
 
-Export all LUNs with the `dd` command and use *.img* for output file extension.
+This script will help you generate a OVA file for import into IBM Cloud PowerVS Workspace.
+
+*For more information, contact: Lars Johannesson "larsj AT dk.ibm.com"*
+
+
+#### Dump LPAR disks
+
+Dump all LUNs with the `dd` command and use *.img* for output file extension.
 
 #### Download the script
 

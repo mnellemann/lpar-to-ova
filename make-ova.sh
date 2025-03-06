@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Work by
+# Lars Johanneson <larsj@dk.ibm.com>
+# Mark Nellemann <mark.nellemann@ibm.com>
+
 
 # Valid architectures and OS types
 archs=(ppc64 ppc64le)
@@ -8,6 +12,7 @@ types=(ibmi aix linux)
 
 # Print usage information and exit
 usage() { echo "Usage: $0 [-a <ppc64|ppc64le>] [-o <ibmi|aix|linux>] [-n <name>]" 1>&2; exit 1; }
+
 
 
 ###
@@ -79,24 +84,6 @@ make_ovf_storage_resources() {
     num=$((num+1))
     boot="False"
   done
-
-#      <ovf:Item>
-#          <rasd:Description>Temporary clone for export</rasd:Description>
-#          <rasd:ElementName>Image_P10_IBM05_volume_1</rasd:ElementName>
-#          <rasd:HostResource>ovf:/disk/disk1</rasd:HostResource>
-#          <rasd:InstanceID>1</rasd:InstanceID>
-#          <rasd:ResourceType>17</rasd:ResourceType>
-#          <ns1:boot xmlns:ns1="ibmpvc">True</ns1:boot>
-#        </ovf:Item>
-#        <ovf:Item>
-#          <rasd:Description>Temporary clone for export</rasd:Description>
-#          <rasd:ElementName>Image_P10_IBM05_volume_2</rasd:ElementName>
-#          <rasd:HostResource>ovf:/disk/disk2</rasd:HostResource>
-#          <rasd:InstanceID>2</rasd:InstanceID>
-#          <rasd:ResourceType>17</rasd:ResourceType>
-#          <ns2:boot xmlns:ns2="ibmpvc">False</ns2:boot>
-#        </ovf:Item>
-  echo "RESOURCES"
 }
 
 
@@ -114,10 +101,10 @@ make_ovf_file() {
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
   echo "<ovf:Envelope xmlns:ovf=\"http://schemas.dmtf.org/ovf/envelope/1\" xmlns:rasd=\"http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance\">"
   echo "  <ovf:References>"
-  echo $ref
+  echo "    $ref"
   echo "  </ovf:References>"
   echo "  <ovf:DiskSection>"
-  echo $dsk
+  echo "    $dsk"
   echo "  </ovf:DiskSection>"
   echo "  <ovf:VirtualSystemCollection>"
   echo "    <ovf:VirtualSystem ovf:id=\"vs0\">"
@@ -133,7 +120,7 @@ make_ovf_file() {
   echo "        <ns0:architecture xmlns:ns0=\"ibmpvc\">$arch</ns0:architecture>"
   echo "      </ovf:OperatingSystemSection>"
   echo "      <ovf:VirtualHardwareSection>"
-  echo $res
+  echo "        $res"
   echo "      </ovf:VirtualHardwareSection>"
   echo "    </ovf:VirtualSystem>"
   echo "    <ovf:Info/>"
@@ -181,7 +168,7 @@ if [ -z "${a}" ] || [ -z "${o}" ] || [ -z "${n}" ]; then
 fi
 
 # Validate name input
-if [[ ! "$n" =~ ^[a-z0-9-]{3,}$ ]]; then
+if [[ ! "$n" =~ ^[A-Za-z0-9._-]{3,32}$ ]]; then
   echo " > Name not valid"
   exit 1
 fi
@@ -202,3 +189,11 @@ fi
 
 make_meta_file $o $a > "${n}.meta"
 make_ovf_file  $o $a $n > "${n}.ovf"
+
+echo
+echo "Create the OVA file:  tar zcvf /mnt/bigdisk/${name}.ova.gz ${name}.meta ${name}.ovf *.img"
+echo
+
+echo
+echo "TODO: Upload ova file to COS with the s3cmd"
+echo
