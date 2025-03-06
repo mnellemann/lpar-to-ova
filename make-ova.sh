@@ -181,7 +181,18 @@ if [ -z "${a}" ] || [ -z "${o}" ] || [ -z "${n}" ]; then
 fi
 
 # Validate name input
-[[ "$n" =~ ^[a-z0-9]{3,}$ ]] || (echo " > Name not valid"; usage)
+if [[ ! "$n" =~ ^[a-z0-9-]{3,}$ ]]; then
+  echo " > Name not valid"
+  exit 1
+fi
+
+# Check that we have *.img files
+
+ls *.img >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo " > No .img files found"
+  exit 1
+fi
 
 # Debug
 #echo "name = ${n}"
