@@ -23,13 +23,13 @@ chmod +x make-ova.sh
 First image file (from natural sort with *ls -v*) is assumed to be the *boot* disk, and the rest are data disks.
 
 ```shell
-Usage: ./make-ova.sh [-a <ppc64|ppc64le>] [-o <ibmi|aix|linux>] [-n <name>]
+Usage: make-ova.sh [-a <ppc64|ppc64le>] [-o <ibmi|aix|linux>] [-n <name>]
 ```
 
 IBMi example:
 
 ```shell
-./make-ova.sh -a ppc64 -o ibmi -n IBMI-02
+/path/to/make-ova.sh -a ppc64 -o ibmi -n IBMI-02
 ```
 
 

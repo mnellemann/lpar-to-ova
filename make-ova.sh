@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Work by
-# Lars Johanneson <larsj@dk.ibm.com>
+# Work by:
+# Lars Johannesson <larsj@dk.ibm.com>
 # Mark Nellemann <mark.nellemann@ibm.com>
 
 
 # Valid architectures and OS types
 archs=(ppc64 ppc64le)
-types=(ibmi aix linux)
+types=(ibmi aix rhel sles ubuntu coreos)
 
 
 # Print usage information and exit
@@ -24,19 +24,17 @@ make_meta_file() {
   os=$1
   arch=$1
 
-  echo "os-type = ${t}"
-  echo "architecture = ${a}"
-
   type="boot"
   num=1
 
+  # The 'os-type' must be one of ['aix', 'ibmi', 'rhel', 'sles', 'ubuntu', 'coreos']
+  echo "os-type = ${os}"
+  echo "architecture = ${arch}"
   for img in `ls -v *.img`; do
     echo "vol${num}-file = $img"
     echo "vol${num}-type = $type"
-
     type="data"
     num=$((num+1))
-
   done
 }
 
@@ -89,7 +87,7 @@ make_ovf_storage_resources() {
 
 # Write OVF Manifest
 make_ovf_file() {
-  type=$1
+  type=$1 # OS
   arch=$2
   name=$3
 
@@ -101,10 +99,10 @@ make_ovf_file() {
   echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
   echo "<ovf:Envelope xmlns:ovf=\"http://schemas.dmtf.org/ovf/envelope/1\" xmlns:rasd=\"http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance\">"
   echo "  <ovf:References>"
-  echo "    $ref"
+  echo "$ref"
   echo "  </ovf:References>"
   echo "  <ovf:DiskSection>"
-  echo "    $dsk"
+  echo "$dsk"
   echo "  </ovf:DiskSection>"
   echo "  <ovf:VirtualSystemCollection>"
   echo "    <ovf:VirtualSystem ovf:id=\"vs0\">"
@@ -120,7 +118,7 @@ make_ovf_file() {
   echo "        <ns0:architecture xmlns:ns0=\"ibmpvc\">$arch</ns0:architecture>"
   echo "      </ovf:OperatingSystemSection>"
   echo "      <ovf:VirtualHardwareSection>"
-  echo "        $res"
+  echo "$res"
   echo "      </ovf:VirtualHardwareSection>"
   echo "    </ovf:VirtualSystem>"
   echo "    <ovf:Info/>"
@@ -167,31 +165,43 @@ if [ -z "${a}" ] || [ -z "${o}" ] || [ -z "${n}" ]; then
   usage
 fi
 
+
 # Validate name input
 if [[ ! "$n" =~ ^[A-Za-z0-9._-]{3,32}$ ]]; then
   echo " > Name not valid"
   exit 1
 fi
 
-# Check that we have *.img files
 
+# Check that we have *.img files
 ls *.img >/dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo " > No .img files found"
   exit 1
 fi
 
+
+# Present disk images
+echo
+echo "We will be using the following image files in the order shown:"
+echo -n " > "; ls -v *.img
+echo
+echo "Press CTRL-C to abort or ENTER to continue."
+read
+
+
+
 # Debug
 #echo "name = ${n}"
 #echo "arch = ${a}"
 #echo "os = ${o}"
 
-
 make_meta_file $o $a > "${n}.meta"
 make_ovf_file  $o $a $n > "${n}.ovf"
 
 echo
-echo "Create the OVA file:  tar zcvf /mnt/bigdisk/${name}.ova.gz ${name}.meta ${name}.ovf *.img"
+echo "Create the OVA file:"
+echo "  tar zcvf /mnt/bigdisk/${name}.ova.gz ${name}.meta ${name}.ovf *.img"
 echo
 
 echo
